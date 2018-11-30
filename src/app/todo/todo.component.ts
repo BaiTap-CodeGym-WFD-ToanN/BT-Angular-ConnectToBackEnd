@@ -1,6 +1,7 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {map} from 'rxjs/operators';
+import {FormControl} from '@angular/forms';
 
 
 @Component({
@@ -11,6 +12,7 @@ import {map} from 'rxjs/operators';
 export class TodoComponent implements OnInit {
   allTodoList: Page<Todo> = new Page<Todo>([]);
   currentPage = 0;
+  inputControl = new FormControl('New Todo');
 
   constructor(private httpClient: HttpClient,
               @Inject('TODO_API_URL') private API_URL: string) {
@@ -26,8 +28,27 @@ export class TodoComponent implements OnInit {
     });
   }
 
+  deleteTodo(i: number) {
+    this.allTodoList.getElementByOriginIndex(i - 1).completed = true;
+    this.httpClient.delete(this.API_URL + '/' + i,
+      {observe: 'response'}).subscribe((resp) => {
+      console.log(resp.status);
+    });
+  }
+
+  newTodo() {
+    this.httpClient.post(this.API_URL,
+      {
+        title: this.inputControl.value,
+        completed: false
+      },
+      {observe: 'response'}).subscribe((resp) => {
+     console.log(resp.status);
+    });
+  }
+
   next() {
-    if (this.currentPage < this.allTodoList.maxPage) {
+    if (this.currentPage < this.allTodoList.maxPage - 1) {
       this.currentPage++;
     } else {
       this.currentPage = 0;
@@ -35,10 +56,16 @@ export class TodoComponent implements OnInit {
   }
 
   previous() {
-    if (this.currentPage > this.allTodoList.maxPage) {
+    if (this.currentPage < this.allTodoList.maxPage - 1) {
       this.currentPage--;
     } else {
-      this.currentPage = this.allTodoList.maxPage;
+      this.currentPage = this.allTodoList.maxPage - 1;
+    }
+  }
+
+  moveTo(page: number) {
+    if (this.currentPage >= 0 && this.currentPage < this.allTodoList.maxPage) {
+      this.currentPage = page;
     }
   }
 }
@@ -82,6 +109,10 @@ class Page<T> {
       return this.pages[page].length;
     }
     return 0;
+  }
+
+  getElementByOriginIndex(i: number): T {
+    return this.pages[Math.floor(i / this.pagingSize)][(i % this.pagingSize)];
   }
 }
 

@@ -1,7 +1,20 @@
+  <input  placeholder="title" type="text" [formControl]="inputControl">
+  <button type="submit" value="new" (click)="newTodo()">new Todo</button>
 <ul *ngFor="let todo of allTodoList.getPage(currentPage)">
-  <li>Id: {{todo.id}}
-  <br>
+  <li [class.completed]="todo.completed">
+    Id: {{todo.id}}
+    <br>
     Title: {{todo.title}}
+    <br>
+    <button (click)="deleteTodo(todo.id)">delete</button>
   </li>
 </ul>
 <hr>
+<div>
+  <a (click)="previous()">pre</a>
+  <a *ngFor="let i of [currentPage,currentPage+1,currentPage+2,currentPage+3,currentPage+4,currentPage+5];"
+     (click)="moveTo(i)" [class.active]="i === currentPage">
+    {{i}}
+  </a>
+  <a (click)="next()">next</a>
+</div>
